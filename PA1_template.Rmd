@@ -1,25 +1,132 @@
 ---
 title: "Reproducible Research: Peer Assessment 1"
 output: 
-  html_document:
-    keep_md: true
+html_document:
+keep_md: true
 ---
 
+This report analyzes the data collected from a personal activity monitoring device. The data was collected at 5 minute intervals through out the day. The data consists of two months of data from an anonymous individual collected during the months of October and November, 2012 and include the number of steps taken in 5 minute intervals each day.
+
+```{r}
+setwd("/Users/matt/05datascience/DS/coursera/repdata-007/assign1/RepData_PeerAssessment1")
+```
 
 ## Loading and preprocessing the data
-
-
-
+```{r}
+actData <- read.csv("activity.csv")
+summary(actData)
+str(actData)
+actCleanData <- actData[!is.na(actData$steps),]
+str(actCleanData)
+```
 ## What is mean total number of steps taken per day?
+#### Histogram of Steps taken Daily
+```{r}
+splitByDate<-split(actCleanData,actCleanData$date, drop=TRUE)  
+dailySteps<-sapply(splitByDate, function(x) sum(x$steps))  
+hist(dailySteps, main="Total Steps per Day", xlab="# of Steps", col="blue")
+abline(v=mean(dailySteps), lty=2, col="blue")  
+abline(v=median(dailySteps), lty=3, col="red")  
+text(mean(dailySteps)+10,22,labels=paste("Mean: ",as.integer(mean(dailySteps))), pos=4, col="black")  
+text(median(dailySteps)+10,20,labels=paste("Median: ",as.integer(median(dailySteps))), pos=4, col="black")  
+```
 
-
-
+#### Mean of Steps taken Daily
+```{r}
+mean(dailySteps)                
+```
+#### Median of Steps taken Daily
+```{r}
+median(dailySteps)                    
+```
 ## What is the average daily activity pattern?
+#### Time Series
+```{r}
+splitByInterval <- split(actCleanData,actCleanData$interval, drop=TRUE)     
+intervalMean <- sapply(splitByInterval, function(x) mean(x$steps))
+plot(intervalMean, type="l",  
+     main="5 Minute Interval Time Series", 
+     ylab="Mean # of Steps", 
+     xlab="Intervals", col="red")                          
+abline(v=which.max(intervalMean), lty=2, col="blue")                   
+```
 
-
-
+#### 5 Minutes Interval with Max # of Steps 
+```{r}
+mx <- names(which.max(intervalMean))
+print(mx)
+```
 ## Imputing missing values
 
+#### Number of rows with missing value
+```{r}
+nrow(actData[is.na(actData$steps),])
+```
 
+```{r}
+impData <- actData
+for (rownum in 1:nrow(impData)){
+        row <- impData[rownum,]
+        if (is.na(row$steps))
+                {
+                meanVal <- intervalMean[as.character(row$interval)]
+                if (length(meanVal)==0)
+                        meanVal <- 0
+                impData[rownum,]$steps <- meanVal
+                } 
+        }
+splitNewByDay <- split(impData,impData$date, drop=TRUE)                  
+dailyStepsRev <- sapply(splitNewByDay, function(x) sum(x$steps))   
+summary(dailyStepsRev)
+```
+#### Histogram of Steps taken Daily
+```{r}
+hist(dailyStepsRev, main='Total Steps per Day \n With Missing Data Imupted', xlab="# of Steps", col="blue")
+abline(v=mean(dailyStepsRev), lty=2, col="blue")  
+abline(v=median(dailyStepsRev), lty=3, col="red")  
+text(mean(dailyStepsRev)+10,32,labels=paste("Mean: ",as.integer(mean(dailyStepsRev))), pos=4, col="black")  
+text(median(dailyStepsRev)+10,30,labels=paste("Median: ",as.integer(median(dailyStepsRev))), pos=4, col="black")  
+```
+
+#### Mean of Steps taken Daily
+```{r}
+mean(dailyStepsRev)                
+```
+#### Median of Steps taken Daily
+```{r}
+median(dailyStepsRev)                    
+```
+#### Side by Side Comparison
+```{r}
+par(mfrow=c(1,2))
+hist(dailySteps, main="Total Steps per Day", xlab="# of Steps", col="red", ylim=c(0,35))
+abline(v=mean(dailySteps), lty=2, col="blue")  
+abline(v=median(dailySteps), lty=3, col="red")  
+text(mean(dailySteps),32,labels=paste("Mean: ",as.integer(mean(dailySteps))), pos=4, col="black")  
+text(median(dailySteps),30,labels=paste("Median: ",as.integer(median(dailySteps))), pos=4, col="black")  
+hist(dailyStepsRev, main='Total Steps per Day \n With Missing Data Imupted', xlab="# of Steps", col="red")
+abline(v=mean(dailyStepsRev), lty=2, col="blue")  
+abline(v=median(dailyStepsRev), lty=3, col="red")  
+text(mean(dailyStepsRev)+10,32,labels=paste("Mean: ",as.integer(mean(dailyStepsRev))), pos=4, col="black")  
+text(median(dailyStepsRev)+10,30,labels=paste("Median: ",as.integer(median(dailyStepsRev))), pos=4, col="black")  
+```
 
 ## Are there differences in activity patterns between weekdays and weekends?
+```{r}
+impData$date <- as.Date(strptime(impData$date, format="%Y-%m-%d"))
+impData$day <- weekdays(impData$date)
+for (i in 1:nrow(impData)) {
+        if (impData[i,]$day %in% c("Saturday","Sunday")) { 
+                impData[i,]$day<-"weekend"  
+                }else{
+                impData[i,]$day<-"weekday" 
+                }
+        }
+
+library(plyr)
+cdata <- ddply(impData, c("day", "interval"), summarise, mean = mean(steps) )
+str(cdata)
+summary(cdata)
+library(lattice)
+xyplot(mean ~ interval | day, type="l", data = cdata, layout = c(1, 2))
+```
