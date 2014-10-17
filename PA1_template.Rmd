@@ -4,10 +4,11 @@ output:
 html_document:
 keep_md: true
 ---
+### Reproducible Research: Peer Assessment 1
 
 This report analyzes the data collected from a personal activity monitoring device. The data was collected at 5 minute intervals through out the day. The data consists of two months of data from an anonymous individual collected during the months of October and November, 2012 and include the number of steps taken in 5 minute intervals each day.
 
-```{r echo = TRUE}
+```{r echo = FALSE}
 setwd("/Users/matt/05datascience/DS/coursera/repdata-007/assign1/RepData_PeerAssessment1")
 ```
 
@@ -15,7 +16,7 @@ setwd("/Users/matt/05datascience/DS/coursera/repdata-007/assign1/RepData_PeerAss
 
 The data is provided in the CSV file activity.csv. First the file is read into a data frame and NAs are removed.
 
-```{r echo = TRUE}
+```{r readdata, echo = TRUE}
 actData <- read.csv("activity.csv")
 actCleanData <- actData[!is.na(actData$steps),]
 str(actCleanData)
@@ -23,7 +24,7 @@ str(actCleanData)
 
 ### What is mean total number of steps taken per day?
 ##### Histogram of Steps taken Daily
-```{r echo = TRUE}
+```{r stepshistogram, echo = TRUE}
 splitByDate<-split(actCleanData,actCleanData$date, drop=TRUE)  
 dailySteps<-sapply(splitByDate, function(x) sum(x$steps))  
 hist(dailySteps, main="Total Steps per Day", xlab="# of Steps", col="blue")
@@ -49,7 +50,7 @@ median(dailySteps)
 
 We are going to use a time series plot to understand the average daily activity pattern. Below the data is split intervals to plot avearage steps by interval across multiple days.
 ##### Time Series
-```{r echo = TRUE}
+```{r intervaltimeseries, echo = TRUE}
 splitByInterval <- split(actCleanData,actCleanData$interval, drop=TRUE)     
 intervalMean <- sapply(splitByInterval, function(x) mean(x$steps))
 plot(intervalMean, type="l",  
@@ -93,7 +94,7 @@ summary(dailyStepsRev)
 ```
 
 ##### Histogram of Steps taken Daily
-```{r echo = TRUE}
+```{r histogramimputed, echo = TRUE}
 hist(dailyStepsRev, main='Total Steps per Day \n With Missing Data Imupted', xlab="# of Steps", col="blue")
 abline(v=mean(dailyStepsRev), lty=2, col="blue")  
 abline(v=median(dailyStepsRev), lty=3, col="red")  
@@ -112,7 +113,7 @@ Median of steps taken daily is calculated below.
 median(dailyStepsRev)                    
 ```
 ##### Side by Side Comparison of Steps
-```{r echo = TRUE}
+```{r histogramimputedcomparison, echo = TRUE}
 par(mfrow=c(1,2))
 hist(dailySteps, main="Total Steps per Day", xlab="# of Steps", col="red", ylim=c(0,35))
 abline(v=mean(dailySteps), lty=2, col="blue")  
@@ -143,7 +144,7 @@ for (i in 1:nrow(impData)) {
 ```
 
 ##### Time Series Plot
-```{r echo = TRUE}
+```{r timeseriesimputed, echo = TRUE}
 ## using plyr package
 library(plyr)
 cdata <- ddply(impData, c("day", "interval"), summarise, mean = mean(steps) )
