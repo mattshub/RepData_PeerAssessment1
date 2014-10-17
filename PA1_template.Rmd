@@ -7,21 +7,23 @@ keep_md: true
 
 This report analyzes the data collected from a personal activity monitoring device. The data was collected at 5 minute intervals through out the day. The data consists of two months of data from an anonymous individual collected during the months of October and November, 2012 and include the number of steps taken in 5 minute intervals each day.
 
-```{r}
+```{r echo = TRUE}
 setwd("/Users/matt/05datascience/DS/coursera/repdata-007/assign1/RepData_PeerAssessment1")
 ```
 
-## Loading and preprocessing the data
-```{r}
+### Loading and preprocessing the data
+
+The data is provided in the CSV file activity.csv. First the file is read into a data frame and NAs are removed.
+
+```{r echo = TRUE}
 actData <- read.csv("activity.csv")
-summary(actData)
-str(actData)
 actCleanData <- actData[!is.na(actData$steps),]
 str(actCleanData)
 ```
-## What is mean total number of steps taken per day?
-#### Histogram of Steps taken Daily
-```{r}
+
+### What is mean total number of steps taken per day?
+##### Histogram of Steps taken Daily
+```{r echo = TRUE}
 splitByDate<-split(actCleanData,actCleanData$date, drop=TRUE)  
 dailySteps<-sapply(splitByDate, function(x) sum(x$steps))  
 hist(dailySteps, main="Total Steps per Day", xlab="# of Steps", col="blue")
@@ -31,17 +33,23 @@ text(mean(dailySteps)+10,22,labels=paste("Mean: ",as.integer(mean(dailySteps))),
 text(median(dailySteps)+10,20,labels=paste("Median: ",as.integer(median(dailySteps))), pos=4, col="black")  
 ```
 
-#### Mean of Steps taken Daily
-```{r}
+##### Mean of Steps taken Daily
+Mean of steps taken daily is calculated below.
+```{r echo = TRUE}
 mean(dailySteps)                
 ```
-#### Median of Steps taken Daily
-```{r}
+
+##### Median of Steps taken Daily
+Median of steps taken daily is calculated below.
+```{r echo = TRUE}
 median(dailySteps)                    
 ```
-## What is the average daily activity pattern?
-#### Time Series
-```{r}
+
+### What is the average daily activity pattern?
+
+We are going to use a time series plot to understand the average daily activity pattern. Below the data is split intervals to plot avearage steps by interval across multiple days.
+##### Time Series
+```{r echo = TRUE}
 splitByInterval <- split(actCleanData,actCleanData$interval, drop=TRUE)     
 intervalMean <- sapply(splitByInterval, function(x) mean(x$steps))
 plot(intervalMean, type="l",  
@@ -51,19 +59,23 @@ plot(intervalMean, type="l",
 abline(v=which.max(intervalMean), lty=2, col="blue")                   
 ```
 
-#### 5 Minutes Interval with Max # of Steps 
-```{r}
+##### 5 Minutes Interval with Max # of Steps 
+
+```{r echo = TRUE}
 mx <- names(which.max(intervalMean))
 print(mx)
 ```
-## Imputing missing values
 
-#### Number of rows with missing value
-```{r}
+### Imputing missing values
+
+There are `r nrow(actData[is.na(actData$steps),])` rows with missing values. Missing values are replaced with the **mean value for respective intervals**. As indicated below in the r code, for each missing value, the average # of steps taken during the coresponding intevral (averaged across days) is found and put in place of the missing value.
+
+##### Number of rows with missing value
+```{r echo = TRUE}
 nrow(actData[is.na(actData$steps),])
 ```
 
-```{r}
+```{r echo = TRUE}
 impData <- actData
 for (rownum in 1:nrow(impData)){
         row <- impData[rownum,]
@@ -79,8 +91,9 @@ splitNewByDay <- split(impData,impData$date, drop=TRUE)
 dailyStepsRev <- sapply(splitNewByDay, function(x) sum(x$steps))   
 summary(dailyStepsRev)
 ```
-#### Histogram of Steps taken Daily
-```{r}
+
+##### Histogram of Steps taken Daily
+```{r echo = TRUE}
 hist(dailyStepsRev, main='Total Steps per Day \n With Missing Data Imupted', xlab="# of Steps", col="blue")
 abline(v=mean(dailyStepsRev), lty=2, col="blue")  
 abline(v=median(dailyStepsRev), lty=3, col="red")  
@@ -88,16 +101,18 @@ text(mean(dailyStepsRev)+10,32,labels=paste("Mean: ",as.integer(mean(dailyStepsR
 text(median(dailyStepsRev)+10,30,labels=paste("Median: ",as.integer(median(dailyStepsRev))), pos=4, col="black")  
 ```
 
-#### Mean of Steps taken Daily
-```{r}
+##### Mean of Steps taken Daily
+Mean of steps taken daily is calculated below.
+```{r echo = TRUE}
 mean(dailyStepsRev)                
 ```
-#### Median of Steps taken Daily
-```{r}
+##### Median of Steps taken Daily
+Median of steps taken daily is calculated below.
+```{r echo = TRUE}
 median(dailyStepsRev)                    
 ```
-#### Side by Side Comparison
-```{r}
+##### Side by Side Comparison of Steps
+```{r echo = TRUE}
 par(mfrow=c(1,2))
 hist(dailySteps, main="Total Steps per Day", xlab="# of Steps", col="red", ylim=c(0,35))
 abline(v=mean(dailySteps), lty=2, col="blue")  
@@ -111,8 +126,11 @@ text(mean(dailyStepsRev)+10,32,labels=paste("Mean: ",as.integer(mean(dailyStepsR
 text(median(dailyStepsRev)+10,30,labels=paste("Median: ",as.integer(median(dailyStepsRev))), pos=4, col="black")  
 ```
 
-## Are there differences in activity patterns between weekdays and weekends?
-```{r}
+### Are there differences in activity patterns between weekdays and weekends?
+
+A time series is plotted for steps split by weekday & weekend to understand the differences in activity patterns. First the data is split into 2 categories, weekday and weekend.
+
+```{r echo = TRUE}
 impData$date <- as.Date(strptime(impData$date, format="%Y-%m-%d"))
 impData$day <- weekdays(impData$date)
 for (i in 1:nrow(impData)) {
@@ -122,11 +140,15 @@ for (i in 1:nrow(impData)) {
                 impData[i,]$day<-"weekday" 
                 }
         }
+```
 
+##### Time Series Plot
+```{r echo = TRUE}
+## using plyr package
 library(plyr)
 cdata <- ddply(impData, c("day", "interval"), summarise, mean = mean(steps) )
-str(cdata)
-summary(cdata)
 library(lattice)
-xyplot(mean ~ interval | day, type="l", data = cdata, layout = c(1, 2))
+xyplot(mean ~ interval | day, type="l", data = cdata, layout = c(1, 2), xlab="Intervals", ylab="Average Steps", main="Average steps taken during weekdays and weekends")
 ```
+
+During weekends, the number of steps seems to be higher through the day/intervals while during weekdays its more concentrated during the early hours/intervals.
