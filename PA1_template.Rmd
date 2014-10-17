@@ -8,10 +8,6 @@ keep_md: true
 
 This report analyzes the data collected from a personal activity monitoring device. The data was collected at 5 minute intervals through out the day. The data consists of two months of data from an anonymous individual collected during the months of October and November, 2012 and include the number of steps taken in 5 minute intervals each day.
 
-```{r echo = FALSE}
-setwd("/Users/matt/05datascience/DS/coursera/repdata-007/assign1/RepData_PeerAssessment1")
-```
-
 ### Loading and preprocessing the data
 
 The data is provided in the CSV file activity.csv. First the file is read into a data frame and NAs are removed.
@@ -19,7 +15,7 @@ The data is provided in the CSV file activity.csv. First the file is read into a
 ```{r readdata, echo = TRUE}
 actData <- read.csv("activity.csv")
 actCleanData <- actData[!is.na(actData$steps),]
-str(actCleanData)
+summary(actCleanData)
 ```
 
 ### What is mean total number of steps taken per day?

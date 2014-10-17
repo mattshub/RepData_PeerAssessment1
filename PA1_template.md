@@ -8,8 +8,6 @@ keep_md: true
 
 This report analyzes the data collected from a personal activity monitoring device. The data was collected at 5 minute intervals through out the day. The data consists of two months of data from an anonymous individual collected during the months of October and November, 2012 and include the number of steps taken in 5 minute intervals each day.
 
-
-
 ### Loading and preprocessing the data
 
 The data is provided in the CSV file activity.csv. First the file is read into a data frame and NAs are removed.
@@ -18,14 +16,18 @@ The data is provided in the CSV file activity.csv. First the file is read into a
 ```r
 actData <- read.csv("activity.csv")
 actCleanData <- actData[!is.na(actData$steps),]
-str(actCleanData)
+summary(actCleanData)
 ```
 
 ```
-## 'data.frame':	15264 obs. of  3 variables:
-##  $ steps   : int  0 0 0 0 0 0 0 0 0 0 ...
-##  $ date    : Factor w/ 61 levels "2012-10-01","2012-10-02",..: 2 2 2 2 2 2 2 2 2 2 ...
-##  $ interval: int  0 5 10 15 20 25 30 35 40 45 ...
+##      steps                date          interval     
+##  Min.   :  0.00   2012-10-02:  288   Min.   :   0.0  
+##  1st Qu.:  0.00   2012-10-03:  288   1st Qu.: 588.8  
+##  Median :  0.00   2012-10-04:  288   Median :1177.5  
+##  Mean   : 37.38   2012-10-05:  288   Mean   :1177.5  
+##  3rd Qu.: 12.00   2012-10-06:  288   3rd Qu.:1766.2  
+##  Max.   :806.00   2012-10-07:  288   Max.   :2355.0  
+##                   (Other)   :13536
 ```
 
 ### What is mean total number of steps taken per day?
